@@ -38,16 +38,18 @@ function getHeightOfNode(node) {
 
   return Math.max(lHeight, rHeight);
 }
-function countNodesAtBottomOfTree(tree) {
+function countNodesWithOneOrNoChild(tree) {
   if(tree.root === null) return 0;
   else return countEndNodes(tree.root);
 }
 
 
-//count nodes at bottom (which has no child)
+//count nodes which has 1 or 0 child)
 function countEndNodes(node) {
   let left = 0, right = 0;
   if (node.left === null && node.right === null) return 1;
+  else if(node.left && node.right === null) left = 1 + countEndNodes(node.left);
+  else if(node.right && node.left === null) right = 1 + countEndNodes(node.right);
   else {
     if (node.left) left = countEndNodes(node.left);
     if (node.right) right = countEndNodes(node.right);
@@ -80,25 +82,9 @@ function makeBalancedBinaryTree(arr, tree) {
   return tree;
 }
 
-const myArr1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
-// const myArr2 = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
-const myArr2 = [5, 4, 7, 2, 6, 3, 8];
-const myArr3 = [1, 2, 3, 4, 5, 6, 7];
-
-drawBinaryTree(makeBinaryTree(myArr2), '.container', 'Binary Tree Example', JSON.stringify(myArr2));
-drawBinaryTree(makeBalancedBinaryTree(myArr1), '.container', 'Balanced Binary Tree Example', JSON.stringify(myArr1));
-console.log(countNodesAtBottomOfTree(makeBinaryTree(myArr3)));
-console.log(countNodesAtBottomOfTree(makeBalancedBinaryTree(myArr1)));
-
 function drawBinaryTree(tree, selectorString, title, dataString) {
   let root = tree.root
   if (root === null) return;
-
-  //first we calculate height of root node;
-  const rootHeight = getHeightOfTree(tree);
-  //then calculate maximum width possible at the bottom of tree
-  const numOfNodeAtBottom = Math.pow(2, rootHeight - 1);
-  // const numOfNodeAtBottom = countNodesAtBottomOfTree(tree);
 
   //title
   if (title && typeof title === 'string') {
@@ -114,45 +100,65 @@ function drawBinaryTree(tree, selectorString, title, dataString) {
     document.querySelector(selectorString).appendChild(dataElem);
   }
 
+  //first we calculate height of root node;
+  const rootHeight = getHeightOfTree(tree);
+  //then calculate maximum width possible at the bottom of tree
+  // const numOfNodeAtBottom = Math.max(countNodesAtBottomOfTree(tree)+1, rootHeight);
+  // const numOfNodeAtBottom = Math.pow(2, rootHeight - 1);
+  
+  const numOfHorizontalGrid =  Math.min(Math.pow(2, rootHeight - 1), countNodesWithOneOrNoChild(tree));
 
   //canvas
   const container = document.querySelector(selectorString || 'body');
   const canvas = document.createElement('canvas');
-  canvas.setAttribute('width', '800');
-  canvas.setAttribute('height', '300');
+  canvas.setAttribute('width', '1000');
+  canvas.setAttribute('height', '400');
   container.appendChild(canvas);
+  const context = canvas.getContext('2d');
 
+  //fixed variable
   const width = canvas.width;
   const height = canvas.height;
-  console.log(width, " ", height)
-  const context = canvas.getContext('2d');
+  const nodeHeight = height / rootHeight;
+  const radius = Math.min(width / numOfHorizontalGrid * 0.4, nodeHeight * 0.4);
+  // const radius = width / numOfNodeAtBottom * 0.25;
 
   //initial parameters for drawing node
   let parent = null;
-  const nodeHeight = height / rootHeight;
   let parentX, parentY;
-  const radius = width / numOfNodeAtBottom * 0.25;
-
+  
   //draw nodes from root
-  drawNodes(root, width, nodeHeight, radius, width / 2, nodeHeight / 2, context);
+  let rootCenterX;
+  if(root.left && root.right) rootCenterX = width / 2;
+  else if(root.left) rootCenterX = width * 3 / 4;
+  else if(root.right) rootCenterX = width /4;
+  drawNodes(root, width, nodeHeight, radius, rootCenterX, nodeHeight / 2, context);
 
 }
 
 //draw nodes
 function drawNodes(node, nodeWidth, nodeHeight, radius, centerX, centerY, context, parent = null) {
-  if (node.left) {
+  if(node.left && node.right) {
+    //left
     drawLine(centerX, centerY, centerX - (nodeWidth / 4), centerY + nodeHeight, context);
     drawNodes(node.left, nodeWidth / 2, nodeHeight, radius, centerX - (nodeWidth / 4), centerY + nodeHeight, context, node);
-  }
-  if (node.right) {
+    //right
     drawLine(centerX, centerY, centerX + (nodeWidth / 4), centerY + nodeHeight, context);
     drawNodes(node.right, nodeWidth / 2, nodeHeight, radius, centerX + (nodeWidth / 4), centerY + nodeHeight, context, node);
   }
-  drawNode(node, nodeWidth, nodeHeight, radius, centerX, centerY, context, parent);
+  else if (node.left) {
+    drawLine(centerX, centerY, centerX - (nodeWidth / 8), centerY + nodeHeight, context);
+    drawNodes(node.left, nodeWidth / 4 * 3, nodeHeight, radius, centerX - (nodeWidth / 8), centerY + nodeHeight, context, node);
+  }
+  else if (node.right) {
+    drawLine(centerX, centerY, centerX + (nodeWidth / 8), centerY + nodeHeight, context);
+    drawNodes(node.right, nodeWidth / 4 * 3, nodeHeight, radius, centerX + (nodeWidth / 8), centerY + nodeHeight, context, node);
+  }
+  drawNode(node, radius, centerX, centerY, context, parent);
 }
 
 //draw node
-function drawNode(node, nodeWidth, nodeHeight, radius, centerX, centerY, context, parent = null) {
+function drawNode(node, radius, centerX, centerY, context, parent = null) {
   context.beginPath();
   context.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   context.stroke();
@@ -172,3 +178,52 @@ function drawLine(pCenterX, pCenterY, cCenterX, cCenterY, context) {
   context.strokeStyle = "black";
   context.stroke();
 }
+
+
+
+//rendering
+let myArr1 = [];
+for(var i = 1; i < 64; i++) {
+  myArr1.push(i);
+}
+const myArr2 = [5, 4, 7, 2, 6, 3, 8];
+const myArr3 = [1, 2, 3, 4, 5, 6, 7, 9, 8,10, -1 ,-2,-3,-4,-5,-6, -1.5];
+
+drawBinaryTree(makeBinaryTree(myArr3), '#btree-box', 'Binary Tree Example', JSON.stringify(myArr3));
+drawBinaryTree(makeBalancedBinaryTree(myArr3), '#btree-box', 'Balanced Binary Tree Example', JSON.stringify(myArr3));
+
+
+const input = document.querySelector('#btree-input');
+const form = document.querySelector('#btree-form');
+form.addEventListener('submit', function(ev) {
+  ev.preventDefault();
+  
+  //input validation
+  const inputStr = input.value.trim();
+  let arr;
+  try {
+    arr = JSON.parse(inputStr);
+    if(!Array.isArray(arr)) throw new Error();
+    arr.forEach(number => {
+      if(typeof number !== 'number') throw new Error();
+    });
+    const set = new Set(arr);
+    arr = [...set];
+    console.log(arr);
+
+  } catch (error) {
+    console.log(error);
+    window.alert("Invalid Input.")
+    return;
+  }
+
+  //clear previous tree
+  const node = document.querySelector('#btree-box');
+  while(node.hasChildNodes()) {
+    node.removeChild(node.firstChild);
+  }
+
+  //draw new trees
+  drawBinaryTree(makeBinaryTree(arr), '#btree-box', 'Binary Tree', JSON.stringify(arr));
+  drawBinaryTree(makeBalancedBinaryTree(arr), '#btree-box', 'Balanced Binary Tree', "sorted: " + JSON.stringify(arr));
+});
