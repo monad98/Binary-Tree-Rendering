@@ -189,8 +189,8 @@ for(var i = 1; i < 64; i++) {
 const myArr2 = [5, 4, 7, 2, 6, 3, 8];
 const myArr3 = [1, 2, 3, 4, 5, 6, 7, 9, 8,10, -1 ,-2,-3,-4,-5,-6, -1.5];
 
-drawBinaryTree(makeBinaryTree(myArr3), '#btree-box', 'Binary Tree Example', JSON.stringify(myArr3));
-drawBinaryTree(makeBalancedBinaryTree(myArr3), '#btree-box', 'Balanced Binary Tree Example', JSON.stringify(myArr3));
+drawBinaryTree(makeBinaryTree(myArr3), '#btree-box', 'Binary Search Tree Example', JSON.stringify(myArr3));
+drawBinaryTree(makeBalancedBinaryTree(myArr3), '#btree-box', 'Balanced Search Binary Tree Example', JSON.stringify(myArr3));
 
 
 const input = document.querySelector('#btree-input');
@@ -224,6 +224,6 @@ form.addEventListener('submit', function(ev) {
   }
 
   //draw new trees
-  drawBinaryTree(makeBinaryTree(arr), '#btree-box', 'Binary Tree', JSON.stringify(arr));
-  drawBinaryTree(makeBalancedBinaryTree(arr), '#btree-box', 'Balanced Binary Tree', "sorted: " + JSON.stringify(arr));
+  drawBinaryTree(makeBinaryTree(arr), '#btree-box', 'Binary Search Tree', JSON.stringify(arr));
+  drawBinaryTree(makeBalancedBinaryTree(arr), '#btree-box', 'Balanced Binary Search Tree', "sorted: " + JSON.stringify(arr));
 });
